@@ -1,0 +1,47 @@
+# === 参考素材 / 废弃内容（不入库）===
+/可以借用的开源小说成熟框架/
+/自研开源蚁群多智能agent源码/
+/开源框架/
+/rust重构Claudecode/
+/API代理路由和接入api的agent项目/
+/废弃/
+/废弃2.0/
+
+# === 本地工具 / 配置（用户私有）===
+.claude/
+.graphify_python
+
+# === 依赖与构建产物 ===
+**/node_modules/
+**/target/
+**/dist/
+**/dist-ssr/
+**/.next/
+**/build/
+**/.turbo/
+**/.parcel-cache/
+
+# === 数据 / 日志 / 备份 ===
+*.db
+*.db-wal
+*.db-shm
+*.bak
+*.log
+logs/
+novelcraft.db*
+
+# === 系统 / IDE ===
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+*.swo
+*.suo
+
+# === 环境配置（含敏感信息）===
+.env
+.env.local
+.env.*.local
+*.local
