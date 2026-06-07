@@ -2,6 +2,95 @@
 
 ---
 
+## 2026-06-07 — 会话 13（Sprint A Knowledge Base Foundation 收口）
+
+### 完成
+
+#### A. 知识库基础数据层
+- [x] 新增 `knowledge.rs` 聚焦模块，承载 Sprint A SQLite 迁移与 Tauri 命令
+- [x] 新增知识库表：`knowledge_sources` / `knowledge_items` / `knowledge_tags` / `knowledge_item_tags` / `knowledge_links` / `knowledge_suggestions`
+- [x] `db.rs` schema version 升至 v3，并在初始化流程调用知识库迁移
+- [x] `lib.rs` 注册来源、素材、标签与标签绑定相关命令
+
+#### B. 前端知识库 Core / Repository
+- [x] 新增知识库类型契约、引用策略 helper、导入候选生命周期、列表过滤 helper
+- [x] 导入候选严格走 `proposal → pending → confirmed`，并补齐 `book_id` 到 repository 映射
+- [x] 导入候选 ID 改为稳定 hash（包含 source / sourceType / book / index / content），确认写入幂等，避免重复确认主键冲突
+- [x] `knowledge-base-repository.ts` 支持来源 CRUD、素材 CRUD、标签 CRUD、标签绑定/解绑/查询，并保持 browser fallback 不变异返回对象
+- [x] Tauri update payload 显式转换为 camelCase，修复 Rust DTO `rename_all = "camelCase"` 与前端 snake_case 字段不匹配问题
+
+#### C. 知识库 UI 与导航
+- [x] 新增 `/knowledge-base` 页面路由
+- [x] Sidebar 按 Patch K 重构为显式 `WRITING_NAV_ITEMS` / `WORLD_NAV_ITEMS` / `ADVANCED_NAV_ITEMS`，避免旧 `NAV_ITEMS[n]` 硬编码索引错位
+- [x] 知识库页面支持素材、来源、标签、粘贴导入四个区域
+- [x] 素材列表支持 keyword / library / item type / status / source / quote policy / tag category / tag id 筛选
+- [x] 标签可创建、显示，并可在素材条目上绑定/解绑
+- [x] 粘贴导入增加显式来源选择：选择已有来源时 quote policy 由来源 `source_type` 派生；无来源时才允许手动选择 source type
+- [x] 外部粘贴素材默认 `book_id = null`，避免把全局外部素材错误绑定到当前书籍生命周期
+
+#### D. Review / Security 收口
+- [x] code-reviewer 初审发现 4 个高优先级问题：Tauri 字段 casing、标签/筛选缺口、导入来源错配、候选 ID 冲突
+- [x] security-reviewer 检查 SQL 注入、XSS、quote policy、canonical 污染风险；无 CRITICAL，需修复项已纳入
+- [x] 复审发现稳定 ID 与重复确认幂等问题、外部素材 book scope 问题；已修复
+- [x] 最终 focused blocker review：no blockers
+
+### 验证
+- `npx tsc -b --noEmit`（显式指定 `novel-app/tsconfig.json`）✅
+- `npm run lint` ✅
+- `vitest run` ✅ 12 files / 138 tests
+- `cargo check --manifest-path novel-app/src-tauri/Cargo.toml` ✅
+- `cargo test --manifest-path novel-app/src-tauri/Cargo.toml knowledge` ✅ 2 tests
+
+### 修改文件清单
+- `novel-app/src-tauri/src/knowledge.rs`
+- `novel-app/src-tauri/src/db.rs`
+- `novel-app/src-tauri/src/lib.rs`
+- `novel-app/src/core/knowledge-base/types.ts`
+- `novel-app/src/core/knowledge-base/quote-policy.ts`
+- `novel-app/src/core/knowledge-base/import-candidates.ts`
+- `novel-app/src/core/knowledge-base/knowledge-filter.ts`
+- `novel-app/src/core/db/knowledge-base-repository.ts`
+- `novel-app/src/modules/knowledge-base/store.ts`
+- `novel-app/src/modules/knowledge-base/KnowledgeBasePage.tsx`
+- `novel-app/src/App.tsx`
+- `novel-app/src/app/components/Sidebar.tsx`
+- 相关 `.test.ts` 文件
+- `progress.md`
+
+### 下一步
+- Sprint B：Author Profile（作为 `/knowledge-base` 内的“作者档案”区块，不新增顶级路由）
+- Sprint B 必须同时接入 Writer/context-builder 与 anti-AI/style guard 的显式作者约束
+
+---
+
+## 2026-06-06 — 会话 12（Author OS v6.2 冻结补丁 + Sprint A-F Writing Plan）
+
+### 完成
+
+#### A. 启用 Superpowers + Subagent 技术负责人流程
+- [x] 使用 `using-superpowers` / `writing-plans` / `subagent-driven-development` / `tdd-workflow`
+- [x] 以 v6.2 Architecture Freeze 为工程契约，不再扩张产品方向
+- [x] 并行 subagent 审查：规格一致性、数据库约束、测试策略、工程可执行性
+
+#### B. 冻结规格补丁收敛
+- [x] `docs/superpowers/specs/2026-06-03-author-assistant-knowledge-base-design.md`：修正残留 `user_confirmed` 状态命名，统一为 `proposal → pending → confirmed`
+- [x] `KnowledgeCandidate` 接口补入 `canonicalLevel`
+- [x] 明确 `source_type` 第一版为 source-level，item-level 版权差异由 `quote_policy` 覆盖
+- [x] 明确 Sprint A 只做规则生成基础素材卡片草稿，AI 多维分类后置增强
+- [x] 明确 60/25/15 为硬性层级优先 + scoreBreakdown 解释，不允许外部素材反转本书设定优先级
+- [x] Ownership Rules 改为“生命周期归属 + managedBy”两维，Truth Files / temporal-memory 作为系统管理的本书数据
+
+#### C. Sprint A-F Writing Plan
+- [x] 新建 `docs/superpowers/plans/2026-06-06-author-os-sprint-a-f.md`
+- [x] 覆盖 Sprint A Knowledge Base Foundation → Sprint F Writing Cockpit
+- [x] 加入 Review Patch v1，补齐 subagent 发现的执行风险：Tag CRUD、Import Candidate pending 阶段、Rust 命令签名、Sidebar 索引重构、Author Profile 默认语义、RightPanel 数据线、Author Memory 类型、BM25 复用与 UI 测试策略
+
+### 下一步
+- 等待用户选择执行方式：Subagent-Driven（推荐）或 Inline Execution
+- 若进入实现，按 `using-git-worktrees` 先创建隔离 worktree，再从 Sprint A Task A1 开始 TDD 执行
+
+---
+
 ## 2026-05-14 — 会话 11（专业收尾：ESLint 清零 + 安全兜底硬化 + 文档同步）
 
 ### 完成

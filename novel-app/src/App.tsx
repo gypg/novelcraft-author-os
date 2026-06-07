@@ -23,6 +23,7 @@ const PluginManagerPage = lazy(() => import('./modules/plugins/PluginManagerPage
 const CharactersPage = lazy(() => import('./modules/characters/CharactersPage').then((m) => ({ default: m.CharactersPage })))
 const TimelinePage = lazy(() => import('./modules/timeline/TimelinePage').then((m) => ({ default: m.TimelinePage })))
 const KnowledgeGraphPage = lazy(() => import('./modules/knowledge-graph/KnowledgeGraphPage').then((m) => ({ default: m.KnowledgeGraphPage })))
+const KnowledgeBasePage = lazy(() => import('./modules/knowledge-base/KnowledgeBasePage').then((m) => ({ default: m.KnowledgeBasePage })))
 const StylePage = lazy(() => import('./modules/style/StylePage').then((m) => ({ default: m.StylePage })))
 
 function LazyPage({ children }: { children: React.ReactNode }) {
@@ -55,6 +56,7 @@ function AppWithSearch() {
         <Route element={<AppLayout />}>
           <Route index element={<PageErrorBoundary><LazyPage><BookshelfPage /></LazyPage></PageErrorBoundary>} />
           <Route path="editor" element={<PageErrorBoundary><LazyPage><EditorPage /></LazyPage></PageErrorBoundary>} />
+          <Route path="knowledge-base" element={<PageErrorBoundary><LazyPage><KnowledgeBasePage /></LazyPage></PageErrorBoundary>} />
           <Route path="ai" element={<PageErrorBoundary><LazyPage><AICollabPage /></LazyPage></PageErrorBoundary>} />
           <Route path="truth-files" element={<PageErrorBoundary><LazyPage><TruthFilesPage /></LazyPage></PageErrorBoundary>} />
           <Route path="analytics" element={<PageErrorBoundary><LazyPage><AnalyticsPage /></LazyPage></PageErrorBoundary>} />
