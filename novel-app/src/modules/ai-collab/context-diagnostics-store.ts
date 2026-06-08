@@ -3,6 +3,9 @@ import type { ContextBudgetReport } from '@/core/ai-engine/context-builder'
 import type { KnowledgeLibraryType, KnowledgeQuotePolicy, KnowledgeItemType, CanonicalLevel } from '@/core/knowledge-base/types'
 import type { KnowledgeScoreBreakdown } from '@/core/knowledge-base/knowledge-retrieval'
 
+// Re-export for convenience
+export type { ContextBudgetReport }
+
 /**
  * Redaction state for knowledge items in diagnostics display
  */
