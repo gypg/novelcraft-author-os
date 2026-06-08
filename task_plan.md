@@ -30,12 +30,12 @@ Convert Sprint C backend/context capabilities into visible, controllable UI whil
 - [x] Add store/DTO tests for set/clear/stale behavior and direct-forbidden preview redaction
 
 ### Phase 3 — Actual context budget panel
-- [ ] Update `ContextBudgetPanel.tsx` to accept optional real `ContextBudgetReport`
-- [ ] Render layer totals: truth files, temporal facts, author memory, knowledge, recent summary, current tail
-- [ ] Preserve message-estimate fallback before first context build
-- [ ] Add explicit stale/no-run/empty states
-- [ ] Add total and warning states around 70% / 90% utilization
-- [ ] Add tests for real report, fallback, zero/empty, stale state, and warning thresholds
+- [x] Update `ContextBudgetPanel.tsx` to accept optional real `ContextBudgetReport`
+- [x] Render layer totals: truth files, temporal facts, author memory, knowledge, recent summary, current tail
+- [x] Preserve message-estimate fallback before first context build
+- [x] Add explicit stale/no-run/empty states
+- [x] Add total and warning states around 70% / 90% utilization
+- [x] Add tests for real report, fallback, zero/empty, stale state, and warning thresholds
 
 ### Phase 4 — Knowledge retrieval visualization
 - [ ] Add `KnowledgeRetrievalPanel.tsx`
