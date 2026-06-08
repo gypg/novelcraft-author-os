@@ -48,3 +48,6 @@ Thumbs.db
 .env.local
 .env.*.local
 *.local
+
+# Reference projects
+2026-*/
