@@ -15,12 +15,12 @@ Convert Sprint C backend/context capabilities into visible, controllable UI whil
 - [x] Add explicit contract phase before UI work: safe projections / DTOs first, React panels second
 
 ### Phase 1 — Direct-forbidden redaction hardening and safe projections
-- [ ] Create `novel-app/src/core/knowledge-base/knowledge-redaction.ts`
-- [ ] Centralize safe metadata parsing, control-character stripping, summary truncation, keyword count/length limits
-- [ ] Add prompt/UI-safe projection helper such as `buildSafeKnowledgePreview()` with redaction state and display-safe summary/keywords
-- [ ] Reuse helper in `knowledge-retrieval.ts` so direct-forbidden retrieval never indexes raw content/notes
-- [ ] Reuse helper in `context-builder.ts` so prompt JSONL never leaks raw direct-forbidden content
-- [ ] Add/extend tests for redaction helper, retrieval, context-builder prompt serialization, and no raw-content leakage
+- [x] Create `novel-app/src/core/knowledge-base/knowledge-redaction.ts`
+- [x] Centralize safe metadata parsing, control-character stripping, summary truncation, keyword count/length limits
+- [x] Add prompt/UI-safe projection helper such as `buildSafeKnowledgePreview()` with redaction state and display-safe summary/keywords
+- [x] Reuse helper in `knowledge-retrieval.ts` so direct-forbidden retrieval never indexes raw content/notes
+- [x] Reuse helper in `context-builder.ts` so prompt JSONL never leaks raw direct-forbidden content
+- [x] Add/extend tests for redaction helper, retrieval, context-builder prompt serialization, and no raw-content leakage
 
 ### Phase 2 — Retrieval diagnostics contract / store
 - [ ] Define a stable retrieval diagnostics DTO with item id, library type, canonical level, quote policy, item type, redaction state, safe display title/summary/keywords, and score breakdown
