@@ -4,6 +4,30 @@
 
 ---
 
+## 2026-06-08: Sprint C Research — Author Memory / Retrieval / Budget
+
+### Existing repo patterns
+
+- Author Profile already lives in `core/author-os` + `core/db/author-profile-repository.ts`, with browser fallback and Tauri IPC.
+- Knowledge Base already has `knowledge_items` with `library_type: 'author' | 'project' | 'external'`, `canonical_level`, `quote_policy`, status, and browser fallback.
+- Temporal Memory already has a small BM25 implementation in `core/temporal-memory/bm25.ts`; no external dependency is necessary for Sprint C retrieval.
+- Context Builder currently injects outline, truth files, temporal facts, recent summaries, current tail, and default Author Profile, but lacks retrieval metadata and finer context layers.
+
+### Reuse decision
+
+- Build Sprint C using existing Knowledge Base tables rather than creating a new DB table immediately.
+- Author Memory can be represented as confirmed `knowledge_items` where `library_type='author'` and `canonical_level='reference'`.
+- Retrieval should rank `project > author > external` for authority while still surfacing author preferences and external inspiration as lower-priority context.
+- No new npm package is needed for BM25/keyword retrieval.
+
+### Claude/API relevance
+
+- Project remains provider-agnostic via Vercel/OpenAI/Anthropic-compatible provider abstractions.
+- Do not hardcode Claude SDK calls or Anthropic-only model parameters in Sprint C.
+- Context budget should remain model-agnostic and rely on local token estimation unless future work explicitly adds provider token counting.
+
+---
+
 ## 2026-05-07: 参考框架调研总结
 
 ### 可直接借鉴的 UI 布局

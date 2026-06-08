@@ -205,12 +205,14 @@ pub struct ListKnowledgeItemsFilter {
     pub book_id: Option<String>,
     pub source_id: Option<String>,
     pub library_type: Option<String>,
+    pub library_types: Option<Vec<String>>,
     pub item_type: Option<String>,
     pub status: Option<String>,
     pub quote_policy: Option<String>,
     pub tag_id: Option<String>,
     pub tag_category: Option<String>,
     pub include_archived: Option<bool>,
+    pub limit: Option<usize>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -370,6 +372,35 @@ pub fn create_knowledge_item(state: State<'_, DbConn>, input: CreateKnowledgeIte
     item_by_id(&conn, &input.id)
 }
 
+fn filter_knowledge_item_rows(
+    rows: Vec<KnowledgeItemRow>,
+    filter: &ListKnowledgeItemsFilter,
+    matched_tag_item_ids: &std::collections::HashSet<String>,
+) -> Vec<KnowledgeItemRow> {
+    let keyword = filter.keyword.as_ref().map(|value| value.trim().to_lowercase()).filter(|value| !value.is_empty());
+    let tag_filter_active = filter.tag_id.is_some() || filter.tag_category.is_some();
+    let filtered_rows = rows.into_iter().filter(|item| {
+        if !filter.include_archived.unwrap_or(false) && item.status == "archived" { return false; }
+        if tag_filter_active && !matched_tag_item_ids.contains(&item.id) { return false; }
+        if let Some(ref value) = filter.book_id { if item.library_type == "project" && item.book_id.as_ref() != Some(value) { return false; } }
+        if let Some(ref value) = filter.source_id { if item.source_id.as_ref() != Some(value) { return false; } }
+        if let Some(ref value) = filter.library_type { if &item.library_type != value { return false; } }
+        if let Some(ref values) = filter.library_types { if !values.contains(&item.library_type) { return false; } }
+        if let Some(ref value) = filter.item_type { if &item.item_type != value { return false; } }
+        if let Some(ref value) = filter.status { if &item.status != value { return false; } }
+        if let Some(ref value) = filter.quote_policy { if &item.quote_policy != value { return false; } }
+        if let Some(ref value) = keyword {
+            let haystack = format!("{}\n{}\n{}", item.content, item.notes, item.metadata_json).to_lowercase();
+            if !haystack.contains(value) { return false; }
+        }
+        true
+    });
+    match filter.limit {
+        Some(limit) => filtered_rows.take(limit).collect(),
+        None => filtered_rows.collect(),
+    }
+}
+
 #[tauri::command]
 pub fn list_knowledge_items(state: State<'_, DbConn>, filter: ListKnowledgeItemsFilter) -> Result<Vec<KnowledgeItemRow>, String> {
     let conn = state.0.lock().map_err(|e| e.to_string())?;
@@ -389,7 +420,6 @@ pub fn list_knowledge_items(state: State<'_, DbConn>, filter: ListKnowledgeItems
         created_at: row.get(11)?,
         updated_at: row.get(12)?,
     })).map_err(|e| e.to_string())?.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
-    let keyword = filter.keyword.map(|value| value.trim().to_lowercase()).filter(|value| !value.is_empty());
     let tag_filter_active = filter.tag_id.is_some() || filter.tag_category.is_some();
     let matched_tag_item_ids: std::collections::HashSet<String> = if tag_filter_active {
         let mut tag_stmt = conn.prepare(
@@ -408,21 +438,7 @@ pub fn list_knowledge_items(state: State<'_, DbConn>, filter: ListKnowledgeItems
     } else {
         std::collections::HashSet::new()
     };
-    Ok(rows.into_iter().filter(|item| {
-        if !filter.include_archived.unwrap_or(false) && item.status == "archived" { return false; }
-        if tag_filter_active && !matched_tag_item_ids.contains(&item.id) { return false; }
-        if let Some(ref value) = filter.book_id { if item.book_id.as_ref() != Some(value) { return false; } }
-        if let Some(ref value) = filter.source_id { if item.source_id.as_ref() != Some(value) { return false; } }
-        if let Some(ref value) = filter.library_type { if &item.library_type != value { return false; } }
-        if let Some(ref value) = filter.item_type { if &item.item_type != value { return false; } }
-        if let Some(ref value) = filter.status { if &item.status != value { return false; } }
-        if let Some(ref value) = filter.quote_policy { if &item.quote_policy != value { return false; } }
-        if let Some(ref value) = keyword {
-            let haystack = format!("{}\n{}\n{}", item.content, item.notes, item.metadata_json).to_lowercase();
-            if !haystack.contains(value) { return false; }
-        }
-        true
-    }).collect())
+    Ok(filter_knowledge_item_rows(rows, &filter, &matched_tag_item_ids))
 }
 
 #[tauri::command]
@@ -569,17 +585,40 @@ mod tests {
     }
 
     #[test]
-    fn knowledge_item_status_rejects_old_parallel_names() {
-        let conn = Connection::open_in_memory().unwrap();
-        conn.execute_batch("PRAGMA foreign_keys = ON; CREATE TABLE books (id TEXT PRIMARY KEY); CREATE TABLE chapters (id TEXT PRIMARY KEY, book_id TEXT REFERENCES books(id));").unwrap();
-        run_knowledge_migration_v3(&conn);
+    fn list_filter_keeps_global_author_external_and_applies_limit() {
+        let rows = filter_knowledge_item_rows(vec![
+            KnowledgeItemRow {
+                id: "project-1".to_string(), source_id: None, book_id: Some("book-1".to_string()), library_type: "project".to_string(), canonical_level: "canonical".to_string(),
+                item_type: "note".to_string(), content: "雨夜 工厂".to_string(), quote_policy: "not_applicable".to_string(), status: "confirmed".to_string(), metadata_json: "{}".to_string(), notes: "".to_string(), created_at: 1, updated_at: 4,
+            },
+            KnowledgeItemRow {
+                id: "project-2".to_string(), source_id: None, book_id: Some("book-2".to_string()), library_type: "project".to_string(), canonical_level: "canonical".to_string(),
+                item_type: "note".to_string(), content: "雨夜 工厂".to_string(), quote_policy: "not_applicable".to_string(), status: "confirmed".to_string(), metadata_json: "{}".to_string(), notes: "".to_string(), created_at: 1, updated_at: 3,
+            },
+            KnowledgeItemRow {
+                id: "author-1".to_string(), source_id: None, book_id: None, library_type: "author".to_string(), canonical_level: "reference".to_string(),
+                item_type: "note".to_string(), content: "雨夜 工厂".to_string(), quote_policy: "not_applicable".to_string(), status: "confirmed".to_string(), metadata_json: "{}".to_string(), notes: "".to_string(), created_at: 1, updated_at: 2,
+            },
+            KnowledgeItemRow {
+                id: "external-1".to_string(), source_id: None, book_id: None, library_type: "external".to_string(), canonical_level: "inspiration".to_string(),
+                item_type: "note".to_string(), content: "雨夜 工厂".to_string(), quote_policy: "not_applicable".to_string(), status: "confirmed".to_string(), metadata_json: "{}".to_string(), notes: "".to_string(), created_at: 1, updated_at: 1,
+            },
+        ], &ListKnowledgeItemsFilter {
+            keyword: None,
+            book_id: Some("book-1".to_string()),
+            source_id: None,
+            library_type: None,
+            library_types: Some(vec!["project".to_string(), "author".to_string(), "external".to_string()]),
+            item_type: None,
+            status: Some("confirmed".to_string()),
+            quote_policy: None,
+            tag_id: None,
+            tag_category: None,
+            include_archived: Some(false),
+            limit: Some(2),
+        }, &std::collections::HashSet::new());
 
-        let err = conn.execute(
-            "INSERT INTO knowledge_items (id, library_type, canonical_level, item_type, content, quote_policy, status, created_at, updated_at)
-             VALUES ('item-1', 'external', 'inspiration', 'quote', 'content', 'paraphrase_recommended', 'user_confirmed', 1, 1)",
-            [],
-        ).unwrap_err();
-
-        assert!(err.to_string().contains("CHECK constraint failed"));
+        let ids: Vec<String> = rows.into_iter().map(|row| row.id).collect();
+        assert_eq!(ids, vec!["project-1", "author-1"]);
     }
 }

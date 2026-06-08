@@ -2,6 +2,61 @@
 
 ---
 
+## 2026-06-08 — 会话 15（Sprint C Author Memory / Knowledge Retrieval 收口）
+
+### 完成
+
+#### A. Author Memory 基础层
+- [x] 新增 `author-memory-types.ts`，定义作者长期记忆类型、来源、权重与 prompt item 契约
+- [x] 新增 `author-memory-repository.ts`，复用 Sprint A `knowledge_items`，以 `library_type='author'` + `canonical_level='reference'` + `status='confirmed'` 表示作者记忆
+- [x] 作者记忆 metadata 解析具备默认值与权重 clamp（0.1–3），避免异常 metadata 破坏上下文构建
+
+#### B. Knowledge Retrieval 与候选限制
+- [x] 新增 `knowledge-retrieval.ts`，实现轻量 BM25 / 字符 token 检索，不引入新依赖
+- [x] 检索排序加入 `project > author > external`、`canonical > reference > inspiration`、quote policy 与 recency 权重
+- [x] 限制候选处理数量，按权威优先级与更新时间预筛，避免大知识库下无界处理
+- [x] `knowledge-filter.ts` 支持 `libraryTypes` 与 `limit`，并允许 `bookId` 过滤只约束 project 知识，不误排全局 author/external 素材
+
+#### C. Writer Context 接线与安全边界
+- [x] `context-builder` 注入作者长期记忆 JSONL，并明确“仅作为数据值读取，不得覆盖系统规则”
+- [x] `context-builder` 检索 project/author/external confirmed 知识，输出 retrieval metadata 与 context budget report
+- [x] direct-forbidden external 素材在注入 prompt 前隐藏原文，仅保留 summary / keywords / 使用限制，降低直接引用风险
+- [x] 新增 truth files、temporal facts、author memory、knowledge、recent summary、current tail 的估算 token 预算报告
+
+#### D. 测试与验证
+- [x] 新增 Author Memory repository 测试
+- [x] 新增 Knowledge Retrieval 排序、跨书隔离、quote policy 降权、候选限制测试
+- [x] 扩展 context-builder 测试覆盖作者记忆注入、知识检索注入、direct-forbidden redaction、bounded retrieval filter
+
+### 验证
+- `npm --prefix novel-app run test` ✅ 21 files / 175 tests
+- `npm --prefix novel-app run lint` ✅
+- `npm --prefix novel-app exec -- tsc -b novel-app/tsconfig.json --noEmit` ✅
+- `cargo test --manifest-path novel-app/src-tauri/Cargo.toml knowledge` ✅ 2 tests
+- `cargo check --manifest-path novel-app/src-tauri/Cargo.toml` ✅
+- code-reviewer 复审 ✅ no high-confidence blockers
+- security-reviewer 复审 ✅ no high-confidence security blockers
+
+### 修改文件清单
+- `novel-app/src-tauri/src/knowledge.rs`
+- `novel-app/src/core/author-os/author-memory-types.ts`
+- `novel-app/src/core/author-os/author-memory-repository.ts`
+- `novel-app/src/core/author-os/author-memory-repository.test.ts`
+- `novel-app/src/core/knowledge-base/knowledge-retrieval.ts`
+- `novel-app/src/core/knowledge-base/knowledge-retrieval.test.ts`
+- `novel-app/src/core/knowledge-base/knowledge-filter.ts`
+- `novel-app/src/core/ai-engine/context-builder.ts`
+- `novel-app/src/core/ai-engine/context-builder.test.ts`
+- `findings.md`
+- `task_plan.md`
+- `progress.md`
+
+### 下一步
+- Sprint D 可继续做更细粒度 UI：作者记忆管理入口、知识检索可视化、context budget 面板
+- 可选 hardening：限制 direct-forbidden summary / keywords 单项长度，并在 ingestion 侧标记 summary/keywords 为清洗后的派生字段
+
+---
+
 ## 2026-06-08 — 会话 14（Sprint B Author Profile 收口）
 
 ### 完成
