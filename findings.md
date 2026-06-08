@@ -4,6 +4,23 @@
 
 ---
 
+## 2026-06-08: Sprint D Planning — UI Diagnostics / Redaction Hardening
+
+### PR setup findings
+
+- GitHub remote initially had `feature/author-os-knowledge-base` as default branch and no remote `main`, so `gh pr create --base main` failed with blank base/head sha.
+- Pushing local `main` and setting GitHub default branch to `main` fixed PR creation.
+- Sprint A/B/C PR is https://github.com/gypg/novelcraft-author-os/pull/1.
+
+### Sprint D design decisions
+
+- Start with a shared `knowledge-redaction.ts` helper so retrieval scoring, prompt serialization, and future UI diagnostics use the same direct-forbidden safety invariant.
+- Keep Author Memory UI inside `/knowledge-base` rather than adding a top-level route.
+- Expose Writer context diagnostics from module/application boundaries after `buildWritingContext`; `core` must not import `modules` stores.
+- Use `bookId` / `chapterId` on diagnostics to detect stale right-panel output after navigation.
+
+---
+
 ## 2026-06-08: Sprint C Research — Author Memory / Retrieval / Budget
 
 ### Existing repo patterns
