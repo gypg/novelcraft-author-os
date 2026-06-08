@@ -1,17 +1,12 @@
 import { create } from 'zustand'
 import type { ContextBudgetReport } from '@/core/ai-engine/context-builder'
-import type { KnowledgeLibraryType, KnowledgeQuotePolicy, KnowledgeItemType } from '@/core/knowledge-base/types'
+import type { KnowledgeLibraryType, KnowledgeQuotePolicy, KnowledgeItemType, CanonicalLevel } from '@/core/knowledge-base/types'
 import type { KnowledgeScoreBreakdown } from '@/core/knowledge-base/knowledge-retrieval'
 
 /**
  * Redaction state for knowledge items in diagnostics display
  */
 export type RedactionState = 'explicit' | 'redacted-summary' | 'redacted-forbidden'
-
-/**
- * Canonical level for knowledge items (affects retrieval weight)
- */
-export type CanonicalLevel = 'canonical' | 'supplemental'
 
 /**
  * Stable retrieval diagnostics DTO for UI display

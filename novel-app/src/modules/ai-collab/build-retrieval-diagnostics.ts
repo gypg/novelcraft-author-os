@@ -1,6 +1,6 @@
 import type { RetrievedKnowledgeItem } from '@/core/knowledge-base/knowledge-retrieval'
 import { buildSafeKnowledgePreview } from '@/core/knowledge-base/knowledge-redaction'
-import type { RetrievalDiagnosticDTO, CanonicalLevel, RedactionState } from './context-diagnostics-store'
+import type { RetrievalDiagnosticDTO, RedactionState } from './context-diagnostics-store'
 
 /**
  * Build retrieval diagnostic DTO from retrieved knowledge item
@@ -12,8 +12,8 @@ export function buildRetrievalDiagnosticDTO(
   const { item, score, scoreBreakdown } = retrieved
   const safePreview = buildSafeKnowledgePreview(item)
 
-  // Canonical level comes from item schema
-  const canonicalLevel: CanonicalLevel = item.canonical_level
+  // Use canonical level directly from item schema
+  const canonicalLevel = item.canonical_level
 
   // Map safe preview redaction state to diagnostic redaction state
   const redactionState: RedactionState =
