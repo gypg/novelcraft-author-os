@@ -574,11 +574,22 @@ export function BookshelfPage() {
 
   const handleDelete = async (e: React.MouseEvent, bookId: string) => {
     e.stopPropagation()
-    if (!confirm('确定删除这本书？此操作不可撤销。')) return
+    console.log('[DEBUG] Delete button clicked for book:', bookId)
+    logger.info('bookshelf', `Delete button clicked for book: ${bookId}`)
+
+    const confirmed = confirm('确定删除这本书？此操作不可撤销。')
+    console.log('[DEBUG] User confirmed:', confirmed)
+
+    if (!confirmed) return
+
     try {
+      console.log('[DEBUG] Calling deleteBook...')
       await deleteBook(bookId)
+      console.log('[DEBUG] Delete successful, updating UI...')
       setBooks(books.filter((b) => b.id !== bookId))
+      logger.info('bookshelf', `Successfully deleted book: ${bookId}`)
     } catch (err) {
+      console.error('[DEBUG] Delete failed:', err)
       logger.error('bookshelf', `Delete failed: ${err}`)
     }
   }

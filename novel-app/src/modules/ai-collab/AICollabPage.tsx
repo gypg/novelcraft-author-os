@@ -374,7 +374,11 @@ export function AICollabPage() {
               return (
                 <button
                   key={m}
-                  onClick={() => setMode(m)}
+                  onClick={() => {
+                    console.log('[DEBUG] Mode button clicked:', m, 'Current mode:', mode)
+                    setMode(m)
+                    console.log('[DEBUG] setMode called')
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
