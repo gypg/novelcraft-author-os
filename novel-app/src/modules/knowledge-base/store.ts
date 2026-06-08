@@ -20,7 +20,7 @@ export interface KnowledgeBaseFilters {
 }
 
 interface KnowledgeBaseState {
-  activeSection: 'items' | 'sources' | 'tags' | 'import'
+  activeSection: 'items' | 'sources' | 'tags' | 'import' | 'author-profile'
   filters: KnowledgeBaseFilters
   draftCandidates: ImportCandidate[]
   setActiveSection: (section: KnowledgeBaseState['activeSection']) => void

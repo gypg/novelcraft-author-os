@@ -21,6 +21,7 @@ import {
 import { deriveQuotePolicyForSource, getAllowedSuggestionActions } from '@/core/knowledge-base/quote-policy'
 import type { KnowledgeItemRow, KnowledgeSourceRow, KnowledgeSourceType, KnowledgeTagCategory, KnowledgeTagRow } from '@/core/knowledge-base/types'
 import { useBookshelfStore } from '@/modules'
+import { AuthorProfileSection } from './AuthorProfileSection'
 import { useKnowledgeBaseStore } from './store'
 
 const SOURCE_TYPES: Array<{ value: KnowledgeSourceType; label: string }> = [
@@ -210,6 +211,7 @@ export function KnowledgeBasePage() {
           ['sources', '来源'],
           ['tags', '标签'],
           ['import', '粘贴导入'],
+          ['author-profile', '作者档案'],
         ].map(([key, label]) => (
           <button key={key} className={activeSection === key ? 'btn-primary' : 'btn-secondary'} onClick={() => setActiveSection(key as typeof activeSection)}>{label}</button>
         ))}
@@ -339,6 +341,8 @@ export function KnowledgeBasePage() {
           </div>
         </section>
       )}
+
+      {activeSection === 'author-profile' && <AuthorProfileSection />}
     </div>
   )
 }

@@ -2,6 +2,65 @@
 
 ---
 
+## 2026-06-08 — 会话 14（Sprint B Author Profile 收口）
+
+### 完成
+
+#### A. Author Profile 数据层与 IPC
+- [x] 新增 `author_os.rs` 聚焦模块，承载 Author Profile SQLite v4 迁移与 Tauri 命令
+- [x] 新增 `author_profiles` 表与 updated_at 排序索引
+- [x] `db.rs` schema version 升至 v4，并在初始化流程调用 Author Profile 迁移
+- [x] `lib.rs` 注册作者档案创建、列表、更新与默认档案读取命令
+
+#### B. 前端 Author OS / Repository / UI
+- [x] 新增 Author Profile 类型契约、prompt helper、repository browser fallback 与 view-model
+- [x] `/knowledge-base` 内新增“作者档案”区块，不新增顶级路由
+- [x] 作者档案支持新建、选择、保存、刷新，并以“最新 updated_at”作为默认档案语义
+- [x] 列表字段支持换行/中英文逗号输入，保存为 JSON string array
+
+#### C. Writer / Context / Anti-AI 接入
+- [x] `WriterAgent` 自动加载默认 Author Profile，并允许 `AgentContext.authorProfile` 显式覆盖
+- [x] `context-builder` 注入默认 Author Profile 到 system prompt
+- [x] `style-guard` 支持作者个人禁用/高频回避表达
+- [x] AI inline operation 同步注入 Author Profile 与个人 anti-AI 规则
+- [x] Author Profile prompt 与作者个人 anti-AI rules 均使用 JSON 数据边界包裹用户写入字段，降低 stored prompt injection / prompt pollution 风险
+
+#### D. 测试与验证
+- [x] 新增/更新 Author Profile prompt、repository、view-model、WriterAgent、context-builder、AI inline operation 与 style-guard 测试
+- [x] Rust author_os 单元测试覆盖迁移幂等、默认排序、非法 ID 与有界 JSON array 校验
+
+### 验证
+- `npm --prefix novel-app run test` ✅ 19 files / 162 tests
+- `npm --prefix novel-app run lint` ✅
+- `npm --prefix novel-app exec -- tsc -b novel-app/tsconfig.json --noEmit` ✅
+- `cargo test --manifest-path novel-app/src-tauri/Cargo.toml` ✅ 6 tests（含 author_os 4 tests）
+- `cargo check --manifest-path novel-app/src-tauri/Cargo.toml` ✅
+
+### 修改文件清单
+- `novel-app/src-tauri/src/author_os.rs`
+- `novel-app/src-tauri/src/db.rs`
+- `novel-app/src-tauri/src/lib.rs`
+- `novel-app/src/core/author-os/author-profile-types.ts`
+- `novel-app/src/core/author-os/author-profile-prompt.ts`
+- `novel-app/src/core/db/author-profile-repository.ts`
+- `novel-app/src/modules/knowledge-base/AuthorProfileSection.tsx`
+- `novel-app/src/modules/knowledge-base/author-profile-view-model.ts`
+- `novel-app/src/modules/knowledge-base/KnowledgeBasePage.tsx`
+- `novel-app/src/modules/knowledge-base/store.ts`
+- `novel-app/src/core/ai-engine/agents/types.ts`
+- `novel-app/src/core/ai-engine/agents/writer-agent.ts`
+- `novel-app/src/core/ai-engine/context-builder.ts`
+- `novel-app/src/core/ai-engine/style-guard.ts`
+- `novel-app/src/modules/editor/ai-inline/execute-operation.ts`
+- 相关 `.test.ts` 文件
+- `progress.md`
+
+### 下一步
+- Sprint C：Author Memory / Knowledge Retrieval 与更细粒度的 Writer context budget 接线
+- 可选：为 Author Profile 增加删除/显式设为默认 UI（当前默认语义为最新更新）
+
+---
+
 ## 2026-06-07 — 会话 13（Sprint A Knowledge Base Foundation 收口）
 
 ### 完成

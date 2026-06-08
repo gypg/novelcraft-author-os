@@ -1,8 +1,12 @@
 import { listChapters } from '@/core/db/repository'
 import { queryTemporalFactsAtChapter } from '@/core/db/temporal-memory-repository'
 import { loadTruthFile, type TruthFileName } from '@/core/db/truth-file-repository'
+import { getDefaultAuthorProfile } from '@/core/db/author-profile-repository'
+import { buildAuthorAntiAiRules, buildAuthorProfilePromptSection } from '@/core/author-os/author-profile-prompt'
+import type { AuthorProfileRow } from '@/core/author-os/author-profile-types'
 import type { ChatMessage } from './providers'
 import { buildStyleGuardPrompt } from './style-guard'
+import { logger } from '@/shared/utils/logger'
 
 export interface WritingContext {
   outlineDescription: string | null
@@ -72,6 +76,13 @@ export async function buildWritingContext(params: {
   const currentText = stripHtml(currentContent)
   const currentContentTail = currentText.slice(-2000)
 
+  let authorProfile: AuthorProfileRow | null = null
+  try {
+    authorProfile = await getDefaultAuthorProfile()
+  } catch (error) {
+    logger.warn('context-builder', `Author profile unavailable: ${error}`)
+  }
+
   // 5. Build system prompt
   const systemParts = [
     '你是一个专业的小说写作助手。请根据上下文自然地续写内容。',
@@ -82,8 +93,13 @@ export async function buildWritingContext(params: {
     '- 句子长短交替，避免连续短句或连续长句',
     '- 对话要像真人说话，避免书面化',
     '',
-    buildStyleGuardPrompt(),
+    buildStyleGuardPrompt(buildAuthorAntiAiRules(authorProfile)),
   ]
+
+  const authorProfilePrompt = buildAuthorProfilePromptSection(authorProfile)
+  if (authorProfilePrompt) {
+    systemParts.push('', authorProfilePrompt)
+  }
 
   const systemPrompt = systemParts.join('\n')
 

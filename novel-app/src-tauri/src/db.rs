@@ -72,7 +72,7 @@ pub struct CreateChapterInput {
     pub order_index: Option<i64>,
 }
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 3;
+pub const CURRENT_SCHEMA_VERSION: u32 = 4;
 
 pub fn init_db(conn: &Connection) {
     conn.execute_batch(
@@ -100,6 +100,9 @@ pub fn init_db(conn: &Connection) {
     }
     if current_version < 3 {
         crate::knowledge::run_knowledge_migration_v3(conn);
+    }
+    if current_version < 4 {
+        crate::author_os::run_author_profile_migration_v4(conn);
     }
 
     conn.execute(

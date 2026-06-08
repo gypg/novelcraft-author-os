@@ -5,5 +5,5 @@ declare global {
 }
 
 export function isTauri(): boolean {
-  return !!window.__TAURI_INTERNALS__
+  return typeof window !== 'undefined' && !!window.__TAURI_INTERNALS__
 }

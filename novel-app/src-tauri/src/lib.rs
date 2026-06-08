@@ -1,3 +1,4 @@
+mod author_os;
 mod db;
 mod knowledge;
 mod llm;
@@ -117,6 +118,10 @@ pub fn run() {
             secret::set_provider_secret,
             secret::get_provider_secret,
             secret::delete_provider_secret,
+            author_os::create_author_profile,
+            author_os::list_author_profiles,
+            author_os::update_author_profile,
+            author_os::get_default_author_profile,
             knowledge::create_knowledge_source,
             knowledge::list_knowledge_sources,
             knowledge::update_knowledge_source,
