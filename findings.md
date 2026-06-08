@@ -28,7 +28,6 @@
 - Context budget panel must handle no-run/stale diagnostics because `budgetReport` exists only after `buildWritingContext()` runs.
 
 ---
-
 ## 2026-06-08: Sprint C Research — Author Memory / Retrieval / Budget
 
 ### Existing repo patterns
