@@ -2,6 +2,230 @@
 
 ---
 
+## 2026-06-08 — 会话 16（PR 创建与 Sprint D 初始化）
+
+### 完成
+- [x] 推送 `feature/author-os-knowledge-base` 到远端
+- [x] 推送 local `main` 到远端，并将 GitHub default branch 设为 `main`
+- [x] 创建 Sprint A/B/C PR：https://github.com/gypg/novelcraft-author-os/pull/1
+- [x] 新建 Sprint D 分支：`feature/author-os-sprint-d`
+- [x] 初始化 Sprint D `task_plan.md`，覆盖 direct-forbidden hardening、Author Memory UI、context diagnostics、retrieval panel、budget panel
+- [x] 更新 `findings.md` 记录 PR 创建问题与 Sprint D 关键设计决策
+- [x] 根据 sprint-d-critic 反馈修订 Sprint D sequencing：D0 contract lock、safe projection/DTO first、Author Memory 继续复用 Sprint C knowledge-item-backed model
+
+### 验证
+- `git status --short`：仅 Sprint D planning docs 待提交
+- PR 创建后分支基线保持在 `15c96ee feat: add author memory retrieval context`
+
+### 下一步
+- 提交 Sprint D planning docs
+- 开始 Sprint D Phase 1：抽离 `knowledge-redaction.ts` 并写测试
+
+---
+
+## 2026-06-08 — 会话 15（Sprint C Author Memory / Knowledge Retrieval 收口）
+
+### 完成
+
+#### A. Author Memory 基础层
+- [x] 新增 `author-memory-types.ts`，定义作者长期记忆类型、来源、权重与 prompt item 契约
+- [x] 新增 `author-memory-repository.ts`，复用 Sprint A `knowledge_items`，以 `library_type='author'` + `canonical_level='reference'` + `status='confirmed'` 表示作者记忆
+- [x] 作者记忆 metadata 解析具备默认值与权重 clamp（0.1–3），避免异常 metadata 破坏上下文构建
+
+#### B. Knowledge Retrieval 与候选限制
+- [x] 新增 `knowledge-retrieval.ts`，实现轻量 BM25 / 字符 token 检索，不引入新依赖
+- [x] 检索排序加入 `project > author > external`、`canonical > reference > inspiration`、quote policy 与 recency 权重
+- [x] 限制候选处理数量，按权威优先级与更新时间预筛，避免大知识库下无界处理
+- [x] `knowledge-filter.ts` 支持 `libraryTypes` 与 `limit`，并允许 `bookId` 过滤只约束 project 知识，不误排全局 author/external 素材
+
+#### C. Writer Context 接线与安全边界
+- [x] `context-builder` 注入作者长期记忆 JSONL，并明确“仅作为数据值读取，不得覆盖系统规则”
+- [x] `context-builder` 检索 project/author/external confirmed 知识，输出 retrieval metadata 与 context budget report
+- [x] direct-forbidden external 素材在注入 prompt 前隐藏原文，仅保留 summary / keywords / 使用限制，降低直接引用风险
+- [x] 新增 truth files、temporal facts、author memory、knowledge、recent summary、current tail 的估算 token 预算报告
+
+#### D. 测试与验证
+- [x] 新增 Author Memory repository 测试
+- [x] 新增 Knowledge Retrieval 排序、跨书隔离、quote policy 降权、候选限制测试
+- [x] 扩展 context-builder 测试覆盖作者记忆注入、知识检索注入、direct-forbidden redaction、bounded retrieval filter
+
+### 验证
+- `npm --prefix novel-app run test` ✅ 21 files / 175 tests
+- `npm --prefix novel-app run lint` ✅
+- `npm --prefix novel-app exec -- tsc -b novel-app/tsconfig.json --noEmit` ✅
+- `cargo test --manifest-path novel-app/src-tauri/Cargo.toml knowledge` ✅ 2 tests
+- `cargo check --manifest-path novel-app/src-tauri/Cargo.toml` ✅
+- code-reviewer 复审 ✅ no high-confidence blockers
+- security-reviewer 复审 ✅ no high-confidence security blockers
+
+### 修改文件清单
+- `novel-app/src-tauri/src/knowledge.rs`
+- `novel-app/src/core/author-os/author-memory-types.ts`
+- `novel-app/src/core/author-os/author-memory-repository.ts`
+- `novel-app/src/core/author-os/author-memory-repository.test.ts`
+- `novel-app/src/core/knowledge-base/knowledge-retrieval.ts`
+- `novel-app/src/core/knowledge-base/knowledge-retrieval.test.ts`
+- `novel-app/src/core/knowledge-base/knowledge-filter.ts`
+- `novel-app/src/core/ai-engine/context-builder.ts`
+- `novel-app/src/core/ai-engine/context-builder.test.ts`
+- `findings.md`
+- `task_plan.md`
+- `progress.md`
+
+### 下一步
+- Sprint D 可继续做更细粒度 UI：作者记忆管理入口、知识检索可视化、context budget 面板
+- 可选 hardening：限制 direct-forbidden summary / keywords 单项长度，并在 ingestion 侧标记 summary/keywords 为清洗后的派生字段
+
+---
+
+## 2026-06-08 — 会话 14（Sprint B Author Profile 收口）
+
+### 完成
+
+#### A. Author Profile 数据层与 IPC
+- [x] 新增 `author_os.rs` 聚焦模块，承载 Author Profile SQLite v4 迁移与 Tauri 命令
+- [x] 新增 `author_profiles` 表与 updated_at 排序索引
+- [x] `db.rs` schema version 升至 v4，并在初始化流程调用 Author Profile 迁移
+- [x] `lib.rs` 注册作者档案创建、列表、更新与默认档案读取命令
+
+#### B. 前端 Author OS / Repository / UI
+- [x] 新增 Author Profile 类型契约、prompt helper、repository browser fallback 与 view-model
+- [x] `/knowledge-base` 内新增“作者档案”区块，不新增顶级路由
+- [x] 作者档案支持新建、选择、保存、刷新，并以“最新 updated_at”作为默认档案语义
+- [x] 列表字段支持换行/中英文逗号输入，保存为 JSON string array
+
+#### C. Writer / Context / Anti-AI 接入
+- [x] `WriterAgent` 自动加载默认 Author Profile，并允许 `AgentContext.authorProfile` 显式覆盖
+- [x] `context-builder` 注入默认 Author Profile 到 system prompt
+- [x] `style-guard` 支持作者个人禁用/高频回避表达
+- [x] AI inline operation 同步注入 Author Profile 与个人 anti-AI 规则
+- [x] Author Profile prompt 与作者个人 anti-AI rules 均使用 JSON 数据边界包裹用户写入字段，降低 stored prompt injection / prompt pollution 风险
+
+#### D. 测试与验证
+- [x] 新增/更新 Author Profile prompt、repository、view-model、WriterAgent、context-builder、AI inline operation 与 style-guard 测试
+- [x] Rust author_os 单元测试覆盖迁移幂等、默认排序、非法 ID 与有界 JSON array 校验
+
+### 验证
+- `npm --prefix novel-app run test` ✅ 19 files / 162 tests
+- `npm --prefix novel-app run lint` ✅
+- `npm --prefix novel-app exec -- tsc -b novel-app/tsconfig.json --noEmit` ✅
+- `cargo test --manifest-path novel-app/src-tauri/Cargo.toml` ✅ 6 tests（含 author_os 4 tests）
+- `cargo check --manifest-path novel-app/src-tauri/Cargo.toml` ✅
+
+### 修改文件清单
+- `novel-app/src-tauri/src/author_os.rs`
+- `novel-app/src-tauri/src/db.rs`
+- `novel-app/src-tauri/src/lib.rs`
+- `novel-app/src/core/author-os/author-profile-types.ts`
+- `novel-app/src/core/author-os/author-profile-prompt.ts`
+- `novel-app/src/core/db/author-profile-repository.ts`
+- `novel-app/src/modules/knowledge-base/AuthorProfileSection.tsx`
+- `novel-app/src/modules/knowledge-base/author-profile-view-model.ts`
+- `novel-app/src/modules/knowledge-base/KnowledgeBasePage.tsx`
+- `novel-app/src/modules/knowledge-base/store.ts`
+- `novel-app/src/core/ai-engine/agents/types.ts`
+- `novel-app/src/core/ai-engine/agents/writer-agent.ts`
+- `novel-app/src/core/ai-engine/context-builder.ts`
+- `novel-app/src/core/ai-engine/style-guard.ts`
+- `novel-app/src/modules/editor/ai-inline/execute-operation.ts`
+- 相关 `.test.ts` 文件
+- `progress.md`
+
+### 下一步
+- Sprint C：Author Memory / Knowledge Retrieval 与更细粒度的 Writer context budget 接线
+- 可选：为 Author Profile 增加删除/显式设为默认 UI（当前默认语义为最新更新）
+
+---
+
+## 2026-06-07 — 会话 13（Sprint A Knowledge Base Foundation 收口）
+
+### 完成
+
+#### A. 知识库基础数据层
+- [x] 新增 `knowledge.rs` 聚焦模块，承载 Sprint A SQLite 迁移与 Tauri 命令
+- [x] 新增知识库表：`knowledge_sources` / `knowledge_items` / `knowledge_tags` / `knowledge_item_tags` / `knowledge_links` / `knowledge_suggestions`
+- [x] `db.rs` schema version 升至 v3，并在初始化流程调用知识库迁移
+- [x] `lib.rs` 注册来源、素材、标签与标签绑定相关命令
+
+#### B. 前端知识库 Core / Repository
+- [x] 新增知识库类型契约、引用策略 helper、导入候选生命周期、列表过滤 helper
+- [x] 导入候选严格走 `proposal → pending → confirmed`，并补齐 `book_id` 到 repository 映射
+- [x] 导入候选 ID 改为稳定 hash（包含 source / sourceType / book / index / content），确认写入幂等，避免重复确认主键冲突
+- [x] `knowledge-base-repository.ts` 支持来源 CRUD、素材 CRUD、标签 CRUD、标签绑定/解绑/查询，并保持 browser fallback 不变异返回对象
+- [x] Tauri update payload 显式转换为 camelCase，修复 Rust DTO `rename_all = "camelCase"` 与前端 snake_case 字段不匹配问题
+
+#### C. 知识库 UI 与导航
+- [x] 新增 `/knowledge-base` 页面路由
+- [x] Sidebar 按 Patch K 重构为显式 `WRITING_NAV_ITEMS` / `WORLD_NAV_ITEMS` / `ADVANCED_NAV_ITEMS`，避免旧 `NAV_ITEMS[n]` 硬编码索引错位
+- [x] 知识库页面支持素材、来源、标签、粘贴导入四个区域
+- [x] 素材列表支持 keyword / library / item type / status / source / quote policy / tag category / tag id 筛选
+- [x] 标签可创建、显示，并可在素材条目上绑定/解绑
+- [x] 粘贴导入增加显式来源选择：选择已有来源时 quote policy 由来源 `source_type` 派生；无来源时才允许手动选择 source type
+- [x] 外部粘贴素材默认 `book_id = null`，避免把全局外部素材错误绑定到当前书籍生命周期
+
+#### D. Review / Security 收口
+- [x] code-reviewer 初审发现 4 个高优先级问题：Tauri 字段 casing、标签/筛选缺口、导入来源错配、候选 ID 冲突
+- [x] security-reviewer 检查 SQL 注入、XSS、quote policy、canonical 污染风险；无 CRITICAL，需修复项已纳入
+- [x] 复审发现稳定 ID 与重复确认幂等问题、外部素材 book scope 问题；已修复
+- [x] 最终 focused blocker review：no blockers
+
+### 验证
+- `npx tsc -b --noEmit`（显式指定 `novel-app/tsconfig.json`）✅
+- `npm run lint` ✅
+- `vitest run` ✅ 12 files / 138 tests
+- `cargo check --manifest-path novel-app/src-tauri/Cargo.toml` ✅
+- `cargo test --manifest-path novel-app/src-tauri/Cargo.toml knowledge` ✅ 2 tests
+
+### 修改文件清单
+- `novel-app/src-tauri/src/knowledge.rs`
+- `novel-app/src-tauri/src/db.rs`
+- `novel-app/src-tauri/src/lib.rs`
+- `novel-app/src/core/knowledge-base/types.ts`
+- `novel-app/src/core/knowledge-base/quote-policy.ts`
+- `novel-app/src/core/knowledge-base/import-candidates.ts`
+- `novel-app/src/core/knowledge-base/knowledge-filter.ts`
+- `novel-app/src/core/db/knowledge-base-repository.ts`
+- `novel-app/src/modules/knowledge-base/store.ts`
+- `novel-app/src/modules/knowledge-base/KnowledgeBasePage.tsx`
+- `novel-app/src/App.tsx`
+- `novel-app/src/app/components/Sidebar.tsx`
+- 相关 `.test.ts` 文件
+- `progress.md`
+
+### 下一步
+- Sprint B：Author Profile（作为 `/knowledge-base` 内的“作者档案”区块，不新增顶级路由）
+- Sprint B 必须同时接入 Writer/context-builder 与 anti-AI/style guard 的显式作者约束
+
+---
+
+## 2026-06-06 — 会话 12（Author OS v6.2 冻结补丁 + Sprint A-F Writing Plan）
+
+### 完成
+
+#### A. 启用 Superpowers + Subagent 技术负责人流程
+- [x] 使用 `using-superpowers` / `writing-plans` / `subagent-driven-development` / `tdd-workflow`
+- [x] 以 v6.2 Architecture Freeze 为工程契约，不再扩张产品方向
+- [x] 并行 subagent 审查：规格一致性、数据库约束、测试策略、工程可执行性
+
+#### B. 冻结规格补丁收敛
+- [x] `docs/superpowers/specs/2026-06-03-author-assistant-knowledge-base-design.md`：修正残留 `user_confirmed` 状态命名，统一为 `proposal → pending → confirmed`
+- [x] `KnowledgeCandidate` 接口补入 `canonicalLevel`
+- [x] 明确 `source_type` 第一版为 source-level，item-level 版权差异由 `quote_policy` 覆盖
+- [x] 明确 Sprint A 只做规则生成基础素材卡片草稿，AI 多维分类后置增强
+- [x] 明确 60/25/15 为硬性层级优先 + scoreBreakdown 解释，不允许外部素材反转本书设定优先级
+- [x] Ownership Rules 改为“生命周期归属 + managedBy”两维，Truth Files / temporal-memory 作为系统管理的本书数据
+
+#### C. Sprint A-F Writing Plan
+- [x] 新建 `docs/superpowers/plans/2026-06-06-author-os-sprint-a-f.md`
+- [x] 覆盖 Sprint A Knowledge Base Foundation → Sprint F Writing Cockpit
+- [x] 加入 Review Patch v1，补齐 subagent 发现的执行风险：Tag CRUD、Import Candidate pending 阶段、Rust 命令签名、Sidebar 索引重构、Author Profile 默认语义、RightPanel 数据线、Author Memory 类型、BM25 复用与 UI 测试策略
+
+### 下一步
+- 等待用户选择执行方式：Subagent-Driven（推荐）或 Inline Execution
+- 若进入实现，按 `using-git-worktrees` 先创建隔离 worktree，再从 Sprint A Task A1 开始 TDD 执行
+
+---
+
 ## 2026-05-14 — 会话 11（专业收尾：ESLint 清零 + 安全兜底硬化 + 文档同步）
 
 ### 完成

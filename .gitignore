@@ -7,6 +7,9 @@
 /废弃/
 /废弃2.0/
 
+# === 隔离工作区 ===
+.worktrees/
+
 # === 本地工具 / 配置（用户私有）===
 .claude/
 .graphify_python

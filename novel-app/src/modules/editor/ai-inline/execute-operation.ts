@@ -1,5 +1,8 @@
 import { callLlm, type ChatMessage } from '@/core/ai-engine/providers'
 import { buildStyleGuardPrompt } from '@/core/ai-engine/style-guard'
+import { buildAuthorAntiAiRules, buildAuthorProfilePromptSection } from '@/core/author-os/author-profile-prompt'
+import type { AuthorProfileRow } from '@/core/author-os/author-profile-types'
+import { getDefaultAuthorProfile } from '@/core/db/author-profile-repository'
 import { logger } from '@/shared/utils/logger'
 
 interface ExecuteOperationOptions {
@@ -9,6 +12,29 @@ interface ExecuteOperationOptions {
   prompt: string
   selectedText: string
   onError?: (error: string) => void
+}
+
+async function loadDefaultAuthorProfile(): Promise<AuthorProfileRow | null> {
+  try {
+    return await getDefaultAuthorProfile()
+  } catch (error) {
+    logger.warn('ai-inline', `Author profile unavailable: ${error}`)
+    return null
+  }
+}
+
+export function buildInlineSystemPrompt(prompt: string, authorProfile: AuthorProfileRow | null): string {
+  const sections = [
+    buildStyleGuardPrompt(buildAuthorAntiAiRules(authorProfile)),
+  ]
+
+  const authorProfilePrompt = buildAuthorProfilePromptSection(authorProfile)
+  if (authorProfilePrompt) {
+    sections.push(authorProfilePrompt)
+  }
+
+  sections.push(prompt)
+  return sections.join('\n\n')
 }
 
 export async function executeAiOperation({
@@ -24,7 +50,8 @@ export async function executeAiOperation({
 
   editor.chain().focus().deleteRange({ from, to }).run()
 
-  const systemPrompt = `${buildStyleGuardPrompt()}\n\n${prompt}`
+  const authorProfile = await loadDefaultAuthorProfile()
+  const systemPrompt = buildInlineSystemPrompt(prompt, authorProfile)
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -79,7 +106,8 @@ export async function generateAiText({
   onDelta,
   onError,
 }: GenerateTextOptions): Promise<string> {
-  const systemPrompt = `${buildStyleGuardPrompt()}\n\n${prompt}`
+  const authorProfile = await loadDefaultAuthorProfile()
+  const systemPrompt = buildInlineSystemPrompt(prompt, authorProfile)
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },

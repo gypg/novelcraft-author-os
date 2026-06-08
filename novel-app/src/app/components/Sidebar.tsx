@@ -18,16 +18,23 @@ import {
   Package,
 } from 'lucide-react'
 
-const NAV_ITEMS = [
+const WRITING_NAV_ITEMS = [
   { path: '/', label: '书架', icon: BookOpen },
   { path: '/editor', label: '编辑器', icon: PenLine },
-  { path: '/ai', label: 'AI 协作', icon: Bot },
+  { path: '/knowledge-base', label: '知识库', icon: BookMarked },
+  { path: '/ai', label: 'AI 助手', icon: Bot },
+] as const
+
+const WORLD_NAV_ITEMS = [
   { path: '/truth-files', label: '真相文件', icon: FileText },
   { path: '/world-bible', label: '设定集', icon: BookMarked },
   { path: '/characters', label: '角色档案', icon: Users },
   { path: '/analytics', label: '数据分析', icon: BarChart3 },
   { path: '/timeline', label: '时间线', icon: Clock },
   { path: '/knowledge-graph', label: '知识图谱', icon: GitBranch },
+] as const
+
+const ADVANCED_NAV_ITEMS = [
   { path: '/autopilot', label: '自动驾驶', icon: Zap },
   { path: '/style', label: '写作风格', icon: Package },
   { path: '/plugins', label: '插件', icon: Package },
@@ -229,11 +236,7 @@ export function Sidebar() {
           写作
         </div>
 
-        {[
-          NAV_ITEMS[0], // 书架
-          NAV_ITEMS[1], // 编辑器
-          NAV_ITEMS[2], // AI 协作
-        ].map((item) => {
+        {WRITING_NAV_ITEMS.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
@@ -297,14 +300,7 @@ export function Sidebar() {
           世界观
         </div>
 
-        {[
-          NAV_ITEMS[3], // 真相文件
-          NAV_ITEMS[4], // 设定集
-          NAV_ITEMS[5], // 角色档案
-          NAV_ITEMS[6], // 数据分析
-          NAV_ITEMS[7], // 时间线
-          NAV_ITEMS[8], // 知识图谱
-        ].map((item) => {
+        {WORLD_NAV_ITEMS.map((item) => {
           const Icon = item.icon
           return (
             <NavLink
@@ -368,7 +364,7 @@ export function Sidebar() {
           高级
         </div>
 
-        {[NAV_ITEMS[9], NAV_ITEMS[10], NAV_ITEMS[11], NAV_ITEMS[12]].map((item) => {
+        {ADVANCED_NAV_ITEMS.map((item) => {
           const Icon = item.icon
           return (
             <NavLink

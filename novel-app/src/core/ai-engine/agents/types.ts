@@ -4,6 +4,8 @@ import type { AuditReport } from './audit-types'
 import type { TruthFileName } from '@/core/db/truth-file-repository'
 import type { TemporalFactRow } from '@/core/db/temporal-memory-repository'
 
+import type { AuthorProfileRow } from '@/core/author-os/author-profile-types'
+
 export interface ChapterPlan {
   goals: string[]
   mustKeep: string[]
@@ -50,6 +52,7 @@ export interface AgentContext {
   // Phase 4 input governance
   authorIntent?: string
   currentFocus?: string
+  authorProfile?: AuthorProfileRow | null
 }
 
 export interface AgentExecutionOptions {

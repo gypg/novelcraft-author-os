@@ -1,12 +1,32 @@
 import type { ChatMessage } from '../providers'
 import { BaseAgent } from './base-agent'
+import { buildAuthorAntiAiRules, buildAuthorProfilePromptSection } from '@/core/author-os/author-profile-prompt'
 import { buildStyleGuardPrompt } from '../style-guard'
 import { stripHtml } from '../context-builder'
-import type { AgentContext, ChapterPlan } from './types'
+import { getDefaultAuthorProfile } from '@/core/db/author-profile-repository'
+import { logger } from '@/shared/utils/logger'
+import type { AgentContext, AgentExecutionOptions, AgentResult, ChapterPlan } from './types'
 
 export class WriterAgent extends BaseAgent {
   readonly role = 'writer' as const
   readonly name = '写作 Agent'
+
+  async execute(
+    context: AgentContext,
+    options?: AgentExecutionOptions,
+  ): Promise<AgentResult> {
+    if (context.authorProfile !== undefined) {
+      return super.execute(context, options)
+    }
+
+    try {
+      const authorProfile = await getDefaultAuthorProfile()
+      return super.execute({ ...context, authorProfile }, options)
+    } catch (error) {
+      logger.warn('writer-agent', `Author profile unavailable: ${error}`)
+      return super.execute({ ...context, authorProfile: null }, options)
+    }
+  }
 
   buildSystemPrompt(context: AgentContext): string {
     const parts = [
@@ -19,8 +39,13 @@ export class WriterAgent extends BaseAgent {
       '- 对话要像真人说话，避免书面化',
       '- 不要添加任何标题、注释或解释，直接输出正文',
       '',
-      buildStyleGuardPrompt(),
+      buildStyleGuardPrompt(buildAuthorAntiAiRules(context.authorProfile ?? null)),
     ]
+
+    const authorProfilePrompt = buildAuthorProfilePromptSection(context.authorProfile ?? null)
+    if (authorProfilePrompt) {
+      parts.push('', authorProfilePrompt)
+    }
 
     // Inject voice profile if available
     if (context.planData && 'fingerprint' in context.planData) {

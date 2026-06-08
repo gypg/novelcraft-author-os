@@ -1,4 +1,6 @@
+mod author_os;
 mod db;
+mod knowledge;
 mod llm;
 mod logger;
 mod secret;
@@ -116,6 +118,24 @@ pub fn run() {
             secret::set_provider_secret,
             secret::get_provider_secret,
             secret::delete_provider_secret,
+            author_os::create_author_profile,
+            author_os::list_author_profiles,
+            author_os::update_author_profile,
+            author_os::get_default_author_profile,
+            knowledge::create_knowledge_source,
+            knowledge::list_knowledge_sources,
+            knowledge::update_knowledge_source,
+            knowledge::delete_knowledge_source,
+            knowledge::create_knowledge_item,
+            knowledge::list_knowledge_items,
+            knowledge::update_knowledge_item,
+            knowledge::create_knowledge_tag,
+            knowledge::list_knowledge_tags,
+            knowledge::update_knowledge_tag,
+            knowledge::delete_knowledge_tag,
+            knowledge::attach_knowledge_tag_to_item,
+            knowledge::detach_knowledge_tag_from_item,
+            knowledge::list_knowledge_item_tags,
             db::create_outline_node,
             db::list_outlines,
             db::update_outline_node,
