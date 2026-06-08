@@ -4,6 +4,8 @@ import type { ChatMessage } from '@/core/ai-engine'
 import { runObserve } from '@/core/pipeline/observe'
 import { listChapters } from '@/core/db/repository'
 import { logger } from '@/shared/utils/logger'
+import { useContextDiagnosticsStore } from '@/modules/ai-collab/context-diagnostics-store'
+import { buildRetrievalDiagnostics } from '@/modules/ai-collab/build-retrieval-diagnostics'
 
 export interface AiContinueOptions {
   editor: Editor
@@ -46,13 +48,27 @@ export async function handleAiContinue(options: AiContinueOptions): Promise<void
     // 2. Build writing context
     onStageChange?.('构建上下文...')
     logger.info('ai-continue', 'Building writing context...')
-    const { messages } = await buildWritingContext({
+    const { messages, context } = await buildWritingContext({
       bookId,
       chapterId,
       currentContent,
       outlineTitle,
       outlineDescription,
     })
+
+    // 2a. Publish diagnostics to store for UI panels
+    try {
+      const retrievalDiagnostics = buildRetrievalDiagnostics(context.retrievedKnowledge)
+      useContextDiagnosticsStore.getState().setDiagnostics(
+        context.budgetReport,
+        retrievalDiagnostics,
+        bookId,
+        chapterId
+      )
+      logger.info('ai-continue', `Published context diagnostics: ${retrievalDiagnostics.length} items`)
+    } catch (diagErr) {
+      logger.warn('ai-continue', `Failed to publish diagnostics (non-fatal): ${diagErr}`)
+    }
 
     // 3. Add generation instruction
     const finalMessages: ChatMessage[] = [

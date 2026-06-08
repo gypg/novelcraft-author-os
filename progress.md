@@ -2,6 +2,27 @@
 
 ---
 
+## 2026-06-08 — 会话 16（PR 创建与 Sprint D 初始化）
+
+### 完成
+- [x] 推送 `feature/author-os-knowledge-base` 到远端
+- [x] 推送 local `main` 到远端，并将 GitHub default branch 设为 `main`
+- [x] 创建 Sprint A/B/C PR：https://github.com/gypg/novelcraft-author-os/pull/1
+- [x] 新建 Sprint D 分支：`feature/author-os-sprint-d`
+- [x] 初始化 Sprint D `task_plan.md`，覆盖 direct-forbidden hardening、Author Memory UI、context diagnostics、retrieval panel、budget panel
+- [x] 更新 `findings.md` 记录 PR 创建问题与 Sprint D 关键设计决策
+- [x] 根据 sprint-d-critic 反馈修订 Sprint D sequencing：D0 contract lock、safe projection/DTO first、Author Memory 继续复用 Sprint C knowledge-item-backed model
+
+### 验证
+- `git status --short`：仅 Sprint D planning docs 待提交
+- PR 创建后分支基线保持在 `15c96ee feat: add author memory retrieval context`
+
+### 下一步
+- 提交 Sprint D planning docs
+- 开始 Sprint D Phase 1：抽离 `knowledge-redaction.ts` 并写测试
+
+---
+
 ## 2026-06-08 — 会话 15（Sprint C Author Memory / Knowledge Retrieval 收口）
 
 ### 完成

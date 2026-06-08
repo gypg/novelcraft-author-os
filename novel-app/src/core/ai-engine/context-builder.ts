@@ -6,6 +6,7 @@ import { buildAuthorAntiAiRules, buildAuthorProfilePromptSection } from '@/core/
 import { listAuthorMemories, parseAuthorMemoryMetadata } from '@/core/author-os/author-memory-repository'
 import { listKnowledgeItems } from '@/core/db/knowledge-base-repository'
 import { retrieveKnowledgeItems, type RetrievedKnowledgeItem } from '@/core/knowledge-base/knowledge-retrieval'
+import { buildSafeKnowledgePreview } from '@/core/knowledge-base/knowledge-redaction'
 import type { AuthorProfileRow } from '@/core/author-os/author-profile-types'
 import type { ChatMessage } from './providers'
 import { buildStyleGuardPrompt } from './style-guard'
@@ -26,7 +27,7 @@ export interface WritingContext {
   recentSummaries: string[]
   currentContentTail: string
   systemPrompt: string
-  retrievedKnowledge: Array<{ id: string; score: number; scoreBreakdown: RetrievedKnowledgeItem['scoreBreakdown'] }>
+  retrievedKnowledge: RetrievedKnowledgeItem[]
   budgetReport: ContextBudgetReport
 }
 
@@ -45,36 +46,10 @@ const AUTHOR_MEMORY_CONTEXT_CHAR_LIMIT = 1600
 const TRUTH_FILE_CONTEXT_CHAR_LIMIT = 3000
 const FACTS_CONTEXT_CHAR_LIMIT = 2000
 
-function parseKnowledgeMetadata(metadataJson: string): Record<string, unknown> {
-  try {
-    const parsed = JSON.parse(metadataJson)
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {}
-  } catch {
-    return {}
-  }
-}
-
 function summarizeKnowledgeForPrompt(result: RetrievedKnowledgeItem): string {
-  const item = result.item
-  const metadata = parseKnowledgeMetadata(item.metadata_json)
-  const shouldRedactContent = item.library_type === 'external' && item.quote_policy === 'direct_forbidden'
-  const safeContent = shouldRedactContent
-    ? {
-        contentRedacted: true,
-        use: '仅可作为抽象灵感，不得复述、仿写或直接引用原文。',
-        summary: typeof metadata.summary === 'string' ? metadata.summary : 'summary unavailable',
-        keywords: Array.isArray(metadata.keywords) ? metadata.keywords.slice(0, 8) : undefined,
-      }
-    : { content: item.content }
-
   return JSON.stringify({
-    id: item.id,
-    libraryType: item.library_type,
-    canonicalLevel: item.canonical_level,
-    itemType: item.item_type,
-    quotePolicy: item.quote_policy,
+    ...buildSafeKnowledgePreview(result.item),
     scoreBreakdown: result.scoreBreakdown,
-    ...safeContent,
   })
 }
 
@@ -306,11 +281,7 @@ export async function buildWritingContext(params: {
       recentSummaries: recentSummaries.map((s) => s.slice(0, 200)),
       currentContentTail,
       systemPrompt,
-      retrievedKnowledge: retrievedKnowledge.map((result) => ({
-        id: result.item.id,
-        score: result.score,
-        scoreBreakdown: result.scoreBreakdown,
-      })),
+      retrievedKnowledge,
       budgetReport: {
         truthFilesTokens: estimateTokens(truthFilesContext),
         temporalFactsTokens: estimateTokens(factsContext),

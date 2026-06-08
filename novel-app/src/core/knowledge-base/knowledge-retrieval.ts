@@ -1,4 +1,5 @@
 import type { KnowledgeItemRow, KnowledgeLibraryType, KnowledgeQuotePolicy } from './types'
+import { buildKnowledgeRetrievalText } from './knowledge-redaction'
 
 export interface KnowledgeRetrievalQuery {
   bookId: string
@@ -111,27 +112,6 @@ function limitCandidates(candidates: KnowledgeItemRow[], maxCandidates: number):
     .slice(0, maxCandidates)
 }
 
-function parseMetadata(metadataJson: string): Record<string, unknown> {
-  try {
-    const parsed = JSON.parse(metadataJson)
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {}
-  } catch {
-    return {}
-  }
-}
-
-function directForbiddenRetrievalText(item: KnowledgeItemRow): string {
-  const metadata = parseMetadata(item.metadata_json)
-  const summary = typeof metadata.summary === 'string' ? metadata.summary : ''
-  const keywords = Array.isArray(metadata.keywords) ? metadata.keywords.filter((keyword) => typeof keyword === 'string').join('\n') : ''
-  return [summary, keywords].filter(Boolean).join('\n')
-}
-
-function retrievalText(item: KnowledgeItemRow): string {
-  if (item.library_type === 'external' && item.quote_policy === 'direct_forbidden') return directForbiddenRetrievalText(item)
-  return [item.content, item.notes, item.metadata_json].join('\n')
-}
-
 export function retrieveKnowledgeItems(
   items: readonly KnowledgeItemRow[],
   query: KnowledgeRetrievalQuery,
@@ -144,7 +124,7 @@ export function retrieveKnowledgeItems(
   const candidates = limitCandidates(items.filter((item) => canUseForBook(item, query.bookId)), maxCandidates)
   if (candidates.length === 0) return []
 
-  const documents = candidates.map((item) => tokenize(retrievalText(item)))
+  const documents = candidates.map((item) => tokenize(buildKnowledgeRetrievalText(item)))
   const avgDocLength = documents.reduce((sum, doc) => sum + doc.length, 0) / documents.length || 1
   const idf = computeIDF(documents)
   const newestUpdatedAt = Math.max(...candidates.map((item) => item.updated_at), 0)
