@@ -5,47 +5,53 @@ Convert Sprint C backend/context capabilities into visible, controllable UI whil
 
 ## Phases
 
-### Phase 0 — PR / Branch Setup
+### Phase 0 — PR / Branch Setup and Contract Lock
 - [x] Push `feature/author-os-knowledge-base`
 - [x] Ensure remote `main` exists and GitHub default branch is `main`
 - [x] Create PR for Sprint A/B/C: https://github.com/gypg/novelcraft-author-os/pull/1
 - [x] Create Sprint D branch `feature/author-os-sprint-d`
+- [x] Confirm Sprint D depends on Sprint C knowledge-item-backed Author Memory, not new versioned memory tables
+- [x] Keep Author Memory UI under existing `/knowledge-base` Author OS surface, not a new top-level route
+- [x] Add explicit contract phase before UI work: safe projections / DTOs first, React panels second
 
-### Phase 1 — Direct-forbidden redaction hardening
+### Phase 1 — Direct-forbidden redaction hardening and safe projections
 - [ ] Create `novel-app/src/core/knowledge-base/knowledge-redaction.ts`
-- [ ] Centralize safe metadata parsing, summary truncation, keyword count/length limits
+- [ ] Centralize safe metadata parsing, control-character stripping, summary truncation, keyword count/length limits
+- [ ] Add prompt/UI-safe projection helper such as `buildSafeKnowledgePreview()` with redaction state and display-safe summary/keywords
 - [ ] Reuse helper in `knowledge-retrieval.ts` so direct-forbidden retrieval never indexes raw content/notes
 - [ ] Reuse helper in `context-builder.ts` so prompt JSONL never leaks raw direct-forbidden content
-- [ ] Add/extend tests for redaction helper, retrieval, and context-builder prompt serialization
+- [ ] Add/extend tests for redaction helper, retrieval, context-builder prompt serialization, and no raw-content leakage
 
-### Phase 2 — Author Memory UI
-- [ ] Add `updateAuthorMemory` and `archiveAuthorMemory` repository helpers
+### Phase 2 — Retrieval diagnostics contract / store
+- [ ] Define a stable retrieval diagnostics DTO with item id, library type, canonical level, quote policy, item type, redaction state, safe display title/summary/keywords, and score breakdown
+- [ ] Add `modules/ai-collab/context-diagnostics-store.ts` for latest `budgetReport`, retrieval diagnostics DTOs, `bookId`, `chapterId`, and timestamp
+- [ ] Publish diagnostics from UI/application boundary call sites after `buildWritingContext`; do not import module stores from `core`
+- [ ] Include stale detection when `bookId` / `chapterId` differs from current editor context
+- [ ] Add store/DTO tests for set/clear/stale behavior and direct-forbidden preview redaction
+
+### Phase 3 — Actual context budget panel
+- [ ] Update `ContextBudgetPanel.tsx` to accept optional real `ContextBudgetReport`
+- [ ] Render layer totals: truth files, temporal facts, author memory, knowledge, recent summary, current tail
+- [ ] Preserve message-estimate fallback before first context build
+- [ ] Add explicit stale/no-run/empty states
+- [ ] Add total and warning states around 70% / 90% utilization
+- [ ] Add tests for real report, fallback, zero/empty, stale state, and warning thresholds
+
+### Phase 4 — Knowledge retrieval visualization
+- [ ] Add `KnowledgeRetrievalPanel.tsx`
+- [ ] Render safe retrieval DTOs, score, bm25, library/canonical/quote/recency weights
+- [ ] Add quote policy and redaction badges
+- [ ] Ensure direct-forbidden UI never displays raw content
+- [ ] Wire panel into context tab after diagnostics store is available
+- [ ] Add focused component/view-model tests
+
+### Phase 5 — Author Memory UI
+- [ ] Add `updateAuthorMemory` and `archiveAuthorMemory` repository helpers on existing `knowledge_items` backing store
 - [ ] Add `author-memory-view-model.ts` for labels/defaults/form normalization
 - [ ] Add `AuthorMemorySection.tsx` with create/edit/archive/list UI
 - [ ] Wire Author Memory section/tab into `KnowledgeBasePage.tsx` and store state
 - [ ] Add repository and view-model tests; component tests if practical
-
-### Phase 3 — Context diagnostics transport
-- [ ] Add `modules/ai-collab/context-diagnostics-store.ts`
-- [ ] Publish latest `budgetReport` / `retrievedKnowledge` from UI/application boundary call sites after `buildWritingContext`
-- [ ] Preserve core/module layering: `core` must not import `modules`
-- [ ] Include `bookId` / `chapterId` / timestamp for stale diagnostics detection
-- [ ] Add store tests for set/clear/stale behavior
-
-### Phase 4 — Knowledge retrieval visualization
-- [ ] Add `KnowledgeRetrievalPanel.tsx`
-- [ ] Render retrieved item IDs, score, bm25, library/canonical/quote/recency weights
-- [ ] Add quote policy and redaction badges
-- [ ] Ensure direct-forbidden UI never displays raw content
-- [ ] Wire panel into context tab
-- [ ] Add focused component/view-model tests
-
-### Phase 5 — Actual context budget panel
-- [ ] Update `ContextBudgetPanel.tsx` to accept optional real `ContextBudgetReport`
-- [ ] Render layer totals: truth files, temporal facts, author memory, knowledge, recent summary, current tail
-- [ ] Preserve message-estimate fallback before first context build
-- [ ] Add total and warning states around 70% / 90% utilization
-- [ ] Add tests for real report, fallback, zero/empty, and warning thresholds
+- [ ] Do not add `author_memory_versions` / snapshots in Sprint D unless scope explicitly changes and migration/compatibility plan is written first
 
 ### Phase 6 — Validation / Review / Commit
 - [ ] Run `npm --prefix novel-app run test`
@@ -60,15 +66,19 @@ Convert Sprint C backend/context capabilities into visible, controllable UI whil
 ## Decisions
 - Sprint D starts from PR #1 head branch to keep dependent work unblocked while PR is open.
 - Keep Sprint D UI inside `/knowledge-base`; do not add another top-level route.
-- Introduce shared redaction helper before UI diagnostics so all consumers share the same safety invariant.
+- Sprint D uses the Sprint C knowledge-item-backed Author Memory model; do not introduce versioned memory tables in this UI/observability/hardening sprint.
+- Introduce shared redaction helper and safe retrieval DTO before UI diagnostics so all consumers share the same safety invariant.
 - Archive author memories by setting `status='archived'`, not deleting, for auditability.
 - Publish diagnostics from application/module boundary after `buildWritingContext`; do not let `core` depend on UI stores.
+- Build React panels on immutable DTO/view-model outputs rather than binding components directly to raw `KnowledgeItemRow` or prompt JSONL strings.
 
 ## Risks
 - `KnowledgeBasePage.tsx` may grow too large; mitigate by extracting focused sections/components.
 - Over-truncating summary/keywords may reduce retrieval quality; use deterministic but moderate limits and tests.
 - Diagnostics can become stale when switching book/chapter; store `bookId` and `chapterId` with the report.
 - Direct-forbidden `summary`/`keywords` ingestion must eventually guarantee these are sanitized derivatives, not raw excerpts.
+- Retrieval visualization needs safe display fields beyond Sprint C's `{ id, score, scoreBreakdown }`; add DTO mapping before React work.
+- Avoid dual-source Author Memory: versioned memory persistence is out of scope unless a migration/compatibility plan is added.
 
 ## Errors Encountered
 | Error | Attempt | Resolution |

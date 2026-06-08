@@ -11,6 +11,7 @@
 - [x] 新建 Sprint D 分支：`feature/author-os-sprint-d`
 - [x] 初始化 Sprint D `task_plan.md`，覆盖 direct-forbidden hardening、Author Memory UI、context diagnostics、retrieval panel、budget panel
 - [x] 更新 `findings.md` 记录 PR 创建问题与 Sprint D 关键设计决策
+- [x] 根据 sprint-d-critic 反馈修订 Sprint D sequencing：D0 contract lock、safe projection/DTO first、Author Memory 继续复用 Sprint C knowledge-item-backed model
 
 ### 验证
 - `git status --short`：仅 Sprint D planning docs 待提交

@@ -19,6 +19,14 @@
 - Expose Writer context diagnostics from module/application boundaries after `buildWritingContext`; `core` must not import `modules` stores.
 - Use `bookId` / `chapterId` on diagnostics to detect stale right-panel output after navigation.
 
+### Sprint D plan critique incorporated
+
+- Added D0 contract lock to avoid accidentally replacing Sprint C's knowledge-item-backed Author Memory model with a separate versioned table model.
+- Revised sequencing to safe projection / DTO contracts before React UI panels.
+- Author Memory remains in the existing Knowledge Base / Author OS surface; no new route.
+- Retrieval visualization requires a stable safe DTO with library/canonical/quote/redaction display fields, not only `{ id, score, scoreBreakdown }`.
+- Context budget panel must handle no-run/stale diagnostics because `budgetReport` exists only after `buildWritingContext()` runs.
+
 ---
 
 ## 2026-06-08: Sprint C Research — Author Memory / Retrieval / Budget
