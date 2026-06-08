@@ -374,11 +374,14 @@ export function AICollabPage() {
               return (
                 <button
                   key={m}
-                  onClick={() => {
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
                     console.log('[DEBUG] Mode button clicked:', m, 'Current mode:', mode)
                     setMode(m)
                     console.log('[DEBUG] setMode called')
                   }}
+                  onMouseDown={(e) => e.stopPropagation()}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -394,6 +397,19 @@ export function AICollabPage() {
                     transition: 'all 0.15s ease',
                     width: '100%',
                     textAlign: 'left',
+                    pointerEvents: 'auto',
+                    position: 'relative',
+                    zIndex: 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'var(--app-surface-subtle)'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      e.currentTarget.style.background = 'transparent'
+                    }
                   }}
                 >
                   <span

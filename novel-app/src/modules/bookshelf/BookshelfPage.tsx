@@ -74,9 +74,15 @@ function BookCard({ book, onDelete, onEdit, onClick }: { book: BookRow; onDelete
           {book.title}
         </h3>
         <button
-          onClick={(e) => onEdit(e, book)}
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            console.log('[DEBUG] Edit button clicked')
+            onEdit(e, book)
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
           aria-label={`编辑 ${book.title}`}
-          className="book-card-delete-btn"
+          className="book-card-edit-btn"
           style={{
             width: '28px',
             height: '28px',
@@ -89,15 +95,32 @@ function BookCard({ book, onDelete, onEdit, onClick }: { book: BookRow; onDelete
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: 0.3,
+            opacity: 0.6,
             transition: 'opacity 0.15s ease, background 0.15s ease',
+            pointerEvents: 'auto',
+            position: 'relative',
+            zIndex: 10,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '1'
+            e.currentTarget.style.background = 'var(--color-brand-light)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '0.6'
+            e.currentTarget.style.background = 'transparent'
           }}
           title="编辑书籍"
         >
           <Pencil size={13} />
         </button>
         <button
-          onClick={(e) => onDelete(e, book.id)}
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            console.log('[DEBUG] Delete button clicked')
+            onDelete(e, book.id)
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
           aria-label={`删除 ${book.title}`}
           className="book-card-delete-btn"
           style={{
@@ -112,8 +135,19 @@ function BookCard({ book, onDelete, onEdit, onClick }: { book: BookRow; onDelete
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            opacity: 0.3,
+            opacity: 0.6,
             transition: 'opacity 0.15s ease, background 0.15s ease',
+            pointerEvents: 'auto',
+            position: 'relative',
+            zIndex: 10,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.opacity = '1'
+            e.currentTarget.style.background = 'var(--color-danger-dim)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.opacity = '0.6'
+            e.currentTarget.style.background = 'transparent'
           }}
           title="删除书籍"
         >
