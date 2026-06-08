@@ -122,7 +122,7 @@ describe('buildWritingContext author profile integration', () => {
 
     expect(result.messages.some((message) => message.content.includes('【作者长期记忆】'))).toBe(true)
     expect(result.messages.some((message) => message.content.includes('【检索到的知识库素材】'))).toBe(true)
-    expect(result.context.retrievedKnowledge.map((item) => item.id)).toEqual(['knowledge-1'])
+    expect(result.context.retrievedKnowledge.map((item) => item.item.id)).toEqual(['knowledge-1'])
     expect(result.context.budgetReport.authorMemoryTokens).toBeGreaterThan(0)
     expect(result.context.budgetReport.knowledgeTokens).toBeGreaterThan(0)
   })
@@ -150,7 +150,7 @@ describe('buildWritingContext author profile integration', () => {
     expect(knowledgeMessage?.content).toContain('外部素材描写了冷硬月光和工厂氛围')
     expect(knowledgeMessage?.content).toContain('contentRedacted')
     expect(knowledgeMessage?.content).not.toContain(forbiddenText)
-    expect(result.context.retrievedKnowledge.map((item) => item.id)).toEqual(['external-forbidden'])
+    expect(result.context.retrievedKnowledge.map((item) => item.item.id)).toEqual(['external-forbidden'])
   })
 
   it('omits direct-forbidden notes when no abstract summary exists', async () => {

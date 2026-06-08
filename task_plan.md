@@ -25,7 +25,7 @@ Convert Sprint C backend/context capabilities into visible, controllable UI whil
 ### Phase 2 — Retrieval diagnostics contract / store
 - [x] Define a stable retrieval diagnostics DTO with item id, library type, canonical level, quote policy, item type, redaction state, safe display title/summary/keywords, and score breakdown
 - [x] Add `modules/ai-collab/context-diagnostics-store.ts` for latest `budgetReport`, retrieval diagnostics DTOs, `bookId`, `chapterId`, and timestamp
-- [ ] Publish diagnostics from UI/application boundary call sites after `buildWritingContext`; do not import module stores from `core`
+- [x] Publish diagnostics from UI/application boundary call sites after `buildWritingContext`; do not import module stores from `core`
 - [x] Include stale detection when `bookId` / `chapterId` differs from current editor context
 - [x] Add store/DTO tests for set/clear/stale behavior and direct-forbidden preview redaction
 

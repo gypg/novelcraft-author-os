@@ -27,7 +27,7 @@ export interface WritingContext {
   recentSummaries: string[]
   currentContentTail: string
   systemPrompt: string
-  retrievedKnowledge: Array<{ id: string; score: number; scoreBreakdown: RetrievedKnowledgeItem['scoreBreakdown'] }>
+  retrievedKnowledge: RetrievedKnowledgeItem[]
   budgetReport: ContextBudgetReport
 }
 
@@ -281,11 +281,7 @@ export async function buildWritingContext(params: {
       recentSummaries: recentSummaries.map((s) => s.slice(0, 200)),
       currentContentTail,
       systemPrompt,
-      retrievedKnowledge: retrievedKnowledge.map((result) => ({
-        id: result.item.id,
-        score: result.score,
-        scoreBreakdown: result.scoreBreakdown,
-      })),
+      retrievedKnowledge,
       budgetReport: {
         truthFilesTokens: estimateTokens(truthFilesContext),
         temporalFactsTokens: estimateTokens(factsContext),
