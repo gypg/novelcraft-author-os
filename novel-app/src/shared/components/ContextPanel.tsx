@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useEditorStore, useBookshelfStore, useAICollabStore } from '@/modules'
 import { queryTemporalFactsAtChapter, type TemporalFactRow } from '@/core/db/temporal-memory-repository'
 import { ContextBudgetPanel } from '@/modules/ai-collab/ContextBudgetPanel'
+import { KnowledgeRetrievalPanel } from '@/modules/ai-collab/KnowledgeRetrievalPanel'
 import type { ChatMessage } from '@/core/ai-engine/providers'
 
 export function ContextPanel() {
@@ -65,6 +66,11 @@ export function ContextPanel() {
       {/* Context budget */}
       <div style={{ flexShrink: 0, borderBottom: '1px solid var(--app-border)' }}>
         <ContextBudgetPanel messages={providerMessages} />
+      </div>
+
+      {/* Knowledge retrieval */}
+      <div style={{ flexShrink: 0, borderBottom: '1px solid var(--app-border)' }}>
+        <KnowledgeRetrievalPanel bookId={selectedBookId} chapterId={currentChapterId} />
       </div>
 
       {/* Temporal facts */}
