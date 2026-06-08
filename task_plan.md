@@ -38,12 +38,12 @@ Convert Sprint C backend/context capabilities into visible, controllable UI whil
 - [x] Add tests for real report, fallback, zero/empty, stale state, and warning thresholds
 
 ### Phase 4 — Knowledge retrieval visualization
-- [ ] Add `KnowledgeRetrievalPanel.tsx`
-- [ ] Render safe retrieval DTOs, score, bm25, library/canonical/quote/recency weights
-- [ ] Add quote policy and redaction badges
-- [ ] Ensure direct-forbidden UI never displays raw content
-- [ ] Wire panel into context tab after diagnostics store is available
-- [ ] Add focused component/view-model tests
+- [x] Add `KnowledgeRetrievalPanel.tsx`
+- [x] Render safe retrieval DTOs, score, bm25, library/canonical/quote/recency weights
+- [x] Add quote policy and redaction badges
+- [x] Ensure direct-forbidden UI never displays raw content
+- [x] Wire panel into context tab after diagnostics store is available
+- [x] Add focused component/view-model tests
 
 ### Phase 5 — Author Memory UI
 - [ ] Add `updateAuthorMemory` and `archiveAuthorMemory` repository helpers on existing `knowledge_items` backing store
